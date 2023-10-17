@@ -8,7 +8,15 @@ const app = express();
 
 function makeApp(database: Database) 
 {
+
 	app.locals.database = database;
+
+	app.locals.database.connect().then
+	(
+		() => console.log("Connected to database."),
+		(error) => console.log("Error connecting to database:", error)
+	);	
+
 
 	const server = http.createServer(app);
 	app.use(express.json());
