@@ -20,30 +20,30 @@ export interface IConversation extends Document {
 	},
 	seen: {
 		type: MongooseID,
-		required: true,
+		required: false,
 	}
 }
 
 const conversationSchema: Schema<IConversation> = new Schema<IConversation>({
 	participants: {
 		type: [Schema.Types.ObjectId],
-		required: true,
+		require: true,
 	},
 	messages: {
 		type: [Schema.Types.ObjectId],
-		required: true,
+		require: true,
 	},
 	title: {
 		type: String,
-		required: false,
+		require: false,
 	},
 	lastUpdate: {
 		type: Date,
-		required: true,
+		require: true,
 	},
 	seen: {
 		type: Schema.Types.ObjectId,
-		required: true,
+		require: false,
 	}
 });
 

@@ -12,6 +12,7 @@ const conversationRoutes = require('./routes/conversationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 
 const app = express();
+const cors = require('cors');
 
 function makeApp(database: Database) 
 {
@@ -24,20 +25,24 @@ function makeApp(database: Database)
 		(error) => console.log("Error connecting to database:", error)
 	);
 
+	const server = http.createServer(app);
+	app.use(express.json());
+
+	// Configuration de CORS pour autoriser les requêtes depuis un domaine spécifique
+	app.use(cors({
+		origin: '*', // Remplacez par le domaine que vous souhaitez autoriser
+		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+	}));
+
 	// Connects the routes to the app.
 	app.use('/users', userRoutes);
 	app.use('/conversations', conversationRoutes);
 	app.use('/messages', messageRoutes);
 
-
-
-	const server = http.createServer(app);
-	app.use(express.json());
-
 	const io = new Server(server, { cors: { origin: "*" } });
 	let socketController = new SocketController(io, database);
 
-	app.locals.sockerController = socketController;
+	app.locals.socketController = socketController;
 
 	return { app, server };
 }

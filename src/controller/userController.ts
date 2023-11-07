@@ -3,6 +3,7 @@ import User from '../database/Mongo/Models/UserModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from "../config";
+import {pickRandom} from "../pictures";
 
 
 // Create a new user
@@ -15,6 +16,15 @@ export const createUser = async (req: Request, res: Response) => {
         res.status(400).send(error);
     }
 };
+
+// Get all users
+export const getAllUsers = async (req: Request, res: Response) => {
+    try {
+        res.send(await User.find());
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
 
 // Get a user by name
 export const getUserByName = async (req: Request, res: Response) => {
@@ -57,10 +67,15 @@ export const login = async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body;
 
-        let user = await User.findOne({ name: req.params.name });
+        let user = await User.findOne({ username });
 
         if (!user) {
-            user = new User({ name: username, password });
+            let hashedPassword = await bcrypt.hash(password, 10);
+            user = new User({
+                username: username,
+                password: hashedPassword,
+                profilePicId: pickRandom()
+            });
             await user.save();
         } else {
             const isPasswordCorrect = await bcrypt.compare(password, user.password.toString());

@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
+import joiValidator from "../middleware/joiValidator";
 
-const userController = require('../controller/auth');
+const userController = require('../controller/userController');
 
-router.post('/online', userController.signup);
-router.post('/login', userController.login);
+router.post('/login', joiValidator,userController.login);
+router.get('/all', joiValidator, userController.getAllUsers);
+router.post('/online', joiValidator, userController.getAllUsers);
 
 module.exports = router;

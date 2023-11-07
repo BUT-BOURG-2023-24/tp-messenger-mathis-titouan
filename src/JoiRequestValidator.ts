@@ -15,7 +15,7 @@ interface JoiRouteValidator
 
 class JoiRequestValidator 
 {
-	validators: JoiRouteValidator[] = 
+	validators: JoiRouteValidator[] = []/*
 	[
 		// Routes conversations
 		{
@@ -70,10 +70,24 @@ class JoiRequestValidator
 			route: "/messages/:id",
 			method: "DELETE",
 			validatorSchema: joi.object()
+		},
+
+		// Routes users
+		{
+			route: "/users/login",
+			method: "POST",
+			validatorSchema: joi.object({
+				username: joi.string().required(),
+				password: joi.string().required(),
+			})
+		},
+		{
+			route: "/users/online",
+			method: "GET",
+			validatorSchema: joi.object()
 		}
 
-
-	];
+	];*/
 
 	validate(request: Request): JoiRequestValidatorResponse 
 	{

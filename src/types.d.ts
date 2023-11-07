@@ -14,5 +14,5 @@ declare global {
 		}
 	}
 	var Database:Database
-	var conv: ConversationController?
+	var conv: ConversationController
 }

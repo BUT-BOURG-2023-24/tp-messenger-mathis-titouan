@@ -12,8 +12,8 @@ export interface IUser extends Document {
 		required: true,
 	},
 	profilePicId: {
-		type: MongooseID,
-		required: false,
+		type: String,
+		required: true,
 	}
 }
 
@@ -25,12 +25,14 @@ const userSchema: Schema<IUser> = new Schema<IUser>({
 	},
 	password: {
 		type: String,
-		required: true
+		required: true,
 	},
 	profilePicId: {
-		type: Schema.Types.ObjectId,
-		required: false,
+		type: String,
+		required: true,
 	}
+}, {
+	collection: 'users' // Spécifiez le nom de la collection ici
 });
 
 const UserModel = mongoose.model<IUser>("User", userSchema);
