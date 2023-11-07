@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../database/Mongo/Models/UserModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import config from "../config";
 
 
 // Create a new user
@@ -56,20 +57,19 @@ export const login = async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body;
 
-        let user = await getUserByName(username);
+        let user = await User.findOne({ name: req.params.name });
 
         if (!user) {
             user = new User({ name: username, password });
             await user.save();
-        }
-        else {
-            const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        } else {
+            const isPasswordCorrect = await bcrypt.compare(password, user.password.toString());
             if (!isPasswordCorrect) {
                 return res.status(400).send('Invalid username or password');
             }
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: user._id }, config.JWT_SECRET);
 
         res.send({ user, token, isNewUser: !req.body.id });
     } catch (error) {
