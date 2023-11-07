@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import ConversationModel from '../database/Mongo/Models/ConversationModel';
 import  MessageModel from '../database/Mongo/Models/MessageModel';
 
+
 export const conversationController = {
     async getConversationWithParticipants(req: Request, res: Response) {
         const { participants } = req.body;
@@ -50,7 +51,7 @@ export const conversationController = {
         const { participants } = req.body;
         try {
             const conversation = await ConversationModel.create({ participants });
-            return res.status(201).json(conversation);
+            return res.status(200).json(conversation);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -81,7 +82,7 @@ export const conversationController = {
             if (!conversation) {
                 return res.status(404).json({ message: 'Conversation not found' });
             }
-            const message = conversation.messages.id(messageId);
+            const message = (conversation.messages as any).id(messageId);
             if (!message) {
                 return res.status(404).json({ message: 'Message not found' });
             }
