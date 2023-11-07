@@ -4,6 +4,13 @@ import { Server } from "socket.io";
 import { Database } from "./database/database";
 import { SocketController } from "./socket/socketController";
 
+/**
+ * Import all routes here.
+ */
+const userRoutes = require('./routes/userRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+
 const app = express();
 
 function makeApp(database: Database) 
@@ -15,7 +22,13 @@ function makeApp(database: Database)
 	(
 		() => console.log("Connected to database."),
 		(error) => console.log("Error connecting to database:", error)
-	);	
+	);
+
+	// Connects the routes to the app.
+	app.use('/users', userRoutes);
+	app.use('/conversations', conversationRoutes);
+	app.use('/messages', messageRoutes);
+
 
 
 	const server = http.createServer(app);
