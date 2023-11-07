@@ -1,5 +1,6 @@
 import type { Database } from "../database/database";
 import { Server } from "socket.io";
+import { getConversationsByUserId } from "../controller/userController";
 
 export class SocketController
 {
@@ -13,28 +14,20 @@ export class SocketController
 		this.connect();
 		this.listenRoomChanged();
 	}
+	
 
 	connect()
 	{
 		this.io.on("connection", (socket) => {
-			// Récupérer les infos voulu depuis les extra headers.
-			// socket.handshake.headers contient ce que vous voulez. 
+			// ETAPE 1: Trouver toutes les conversations ou participe l'utilisateur.
+			const userId = socket.handshake.headers.userId;
+			const conversations = getConversationsByUserId(userId);
 
-			/*
-				Dès qu'un socket utilisateur arrive, on veut l'ajouter à la room
-				pour chaque conversation dans laquelle il se trouve. 
-
-				ETAPE 1: 
-					Trouver toutes les conversations ou participe l'utilisateur. 
-
-				ETAPE 2:
-					Rejoindre chaque room ayant pour nom l'ID de la conversation. 
-
-				HINT:
-					socket.join(roomName: string) permet de rejoindre une room.
-					Le paramètre roomName doit absolument être de type string,
-					si vous mettez un type number, cela ne fonctionnera pas.
-			*/
+			// ETAPE 2: Rejoindre chaque room ayant pour nom l'ID de la conversation.
+			conversations.forEach(conversation => {
+				const roomId = conversation.id.toString();
+				socket.join(roomId);
+			});
 		});
 	}
 

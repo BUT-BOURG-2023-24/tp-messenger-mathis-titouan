@@ -24,7 +24,7 @@ function makeApp(database: Database)
 	const io = new Server(server, { cors: { origin: "*" } });
 	let socketController = new SocketController(io, database);
 
-	app.locals.sockerController = socketController;
+	app.locals.socketController = socketController;
 
 	return { app, server };
 }
