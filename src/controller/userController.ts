@@ -5,93 +5,23 @@ import jwt from 'jsonwebtoken';
 import config from "../config";
 import {pickRandom} from "../pictures";
 
+class UserController {
 
-// Create a new user
-export const createUser = async (req: Request, res: Response) => {
-    try {
-        const user = new User(req.body);
-        await user.save();
-        res.status(201).send(user);
-    } catch (error) {
-        res.status(400).send(error);
+    public async createUser (username : string, password : string) {
+        try {
+            const user = await User.create({ username, password });
+            return { user };
+        } catch (error) {
+            console.error(error);
+            return error;
+        }
     }
-};
 
-// Get all users
-export const getAllUsers = async (req: Request, res: Response) => {
-    try {
-        res.send(await User.find());
-    } catch (error) {
-        res.status(500).send(error);
-    }
+    
 }
 
-// Get a user by name
-export const getUserByName = async (req: Request, res: Response) => {
-    try {
-        const user = await User.findOne({ name: req.params.name });
-        if (!user) {
-            return res.status(404).send();
-        }
-        res.send(user);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-};
 
-// Get a user by id
-export const getUserById = async (req: Request, res: Response) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return res.status(404).send();
-        }
-        res.send(user);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-};
-
-// Get users by ids
-export const getUsersByIds = async (req: Request, res: Response) => {
-    try {
-        const ids = req.body.ids;
-        const users = await User.find({ _id: { $in: ids } });
-        res.send(users);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-};
-
-export const login = async (req: Request, res: Response) => {
-    try {
-        const { username, password } = req.body;
-
-        let user = await User.findOne({ username });
-
-        if (!user) {
-            let hashedPassword = await bcrypt.hash(password, 10);
-            user = new User({
-                username: username,
-                password: hashedPassword,
-                profilePicId: pickRandom()
-            });
-            await user.save();
-        } else {
-            const isPasswordCorrect = await bcrypt.compare(password, user.password.toString());
-            if (!isPasswordCorrect) {
-                return res.status(400).send('Invalid username or password');
-            }
-        }
-
-        const token = jwt.sign({ id: user._id }, config.JWT_SECRET);
-
-        res.send({ user, token, isNewUser: !req.body.id });
-    } catch (error) {
-        // If there's an error, return a 500 error
-        res.status(500).send(error);
-    }
-};
-
+export default UserController;
+export type { UserController };
 
 
