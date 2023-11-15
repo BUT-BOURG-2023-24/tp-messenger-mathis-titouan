@@ -1,6 +1,4 @@
-import { Request, Response } from 'express';
-import ConversationModel from '../database/Mongo/Models/ConversationModel';
-import  MessageModel from '../database/Mongo/Models/MessageModel';
+import MessageModel, {IMessage} from '../database/Mongo/Models/MessageModel';
 
 class MessageController {
 
@@ -24,20 +22,21 @@ class MessageController {
         }
     }
 
-    // ne delete pas le message mais le marque comme deleted
-    public async deleteMessageById(messageId: string) {
+    public async deleteMessageById(messageId: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const updatedMessage = await MessageModel.findByIdAndUpdate(
-                messageId,
-                { deleted: true },
-                { new: true }
-            );
-            return updatedMessage;
+            const message = await MessageModel.findByIdAndDelete(messageId) as IMessage | null;
+
+            if (!message) {
+                return { code: 404, error: 'Message not found' };
+            }
+
+            return { message };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
+
 
     // delete vraiment tous les messages
     public async deleteAllMessages() {
@@ -50,17 +49,13 @@ class MessageController {
         }
     }
 
-    public async editMessageById(messageId: string, message: string) {
+    public async editMessageById(messageId: string, newMessageContent: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const updatedMessage = await MessageModel.findByIdAndUpdate(
-                messageId,
-                { content: message, edited: true },
-                { new: true }
-            );
+            const updatedMessage = await MessageModel.findByIdAndUpdate(messageId, { message }, { new: true });
             return updatedMessage;
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 
@@ -83,7 +78,7 @@ class MessageController {
             return updatedMessage;
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 }

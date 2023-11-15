@@ -15,8 +15,7 @@ interface JoiRouteValidator
 
 class JoiRequestValidator 
 {
-	validators: JoiRouteValidator[] = []/*
-	[
+	validators: JoiRouteValidator[] = [
 		// Routes conversations
 		{
 		 	route: "/conversations",
@@ -87,7 +86,7 @@ class JoiRequestValidator
 			validatorSchema: joi.object()
 		}
 
-	];*/
+	];
 
 	validate(request: Request): JoiRequestValidatorResponse 
 	{

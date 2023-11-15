@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import User from '../database/Mongo/Models/UserModel';
+import User, {IUser} from '../database/Mongo/Models/UserModel';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from "../config";
 import {pickRandom} from "../pictures";
+import UserModel from "../database/Mongo/Models/UserModel";
 
 class UserController {
 
@@ -17,13 +18,13 @@ class UserController {
         }
     }
 
-    public async getAllUsers() {
+    public async getAllUsers(): Promise<{ code?: number, error?: string, users?: IUser[] }> {
         try {
             const users = await User.find();
-            return users;
+            return { users };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 
@@ -57,7 +58,7 @@ class UserController {
         }
     }
 
-    public async login(username : string, password : string) {
+    public async login(username : string, password : string) : Promise<{ code?: number, error?: string, user?: any, token?: string }> {
         try {
             let user = await User.findOne({ username });
             if (!user) {
@@ -80,11 +81,10 @@ class UserController {
             return { user, token };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 }
-
 
 export default UserController;
 export type { UserController };
