@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import ConversationModel from '../database/Mongo/Models/ConversationModel';
+import ConversationModel, { IConversation } from '../database/Mongo/Models/ConversationModel'
 import  MessageModel from '../database/Mongo/Models/MessageModel';
 
 class ConversationController {
@@ -34,13 +34,13 @@ class ConversationController {
         }
     }
 
-    public async getAllConversationsForUser(userId : string) {
+    public async getAllConversationsForUser(userId: string): Promise<IConversation[] | { error: any }> {
         try {
-            const conversations = await ConversationModel.find({ userIds: { $in: userId } });
+            const conversations = await ConversationModel.find({ participants: { $in: userId } });
             return conversations;
         } catch (error) {
             console.error(error);
-            return error;
+            return { error };
         }
     }
 

@@ -1,4 +1,5 @@
 import type { Database } from "../database/database";
+import ConversationModel, { IConversation } from '../database/Mongo/Models/ConversationModel'
 import { Server } from "socket.io";
 
 export class SocketController
@@ -18,20 +19,25 @@ export class SocketController
 
 	connect()
 	{
-		this.io.on("connection", (socket) => {
-			/*
-			// ETAPE 1: Trouver toutes les conversations ou participe l'utilisateur.
+		this.io.on("connection", async (socket) => {
 			const userId = socket.handshake.headers.userId;
-			const conversations = getConversationsByUserId(userId);
-
-			// ETAPE 2: Rejoindre chaque room ayant pour nom l'ID de la conversation.
-
-			conversations.forEach(conversation => {
-				const roomId = conversation.id.toString();
-				socket.join(roomId);
-			});
-
-			 */
+			if (!userId) {
+				socket.disconnect();
+				return;
+			}
+		
+			// ETAPE 1
+			try {
+				const result = await this.database.conversationController.getAllConversationsForUser(userId as string);
+		
+				const conversations = result as IConversation[];
+				conversations.forEach((conversation) => {
+					socket.join(conversation.id.toString());
+				});
+				
+			} catch (error) {
+				console.error(error);
+			}
 		});
 	}
 
