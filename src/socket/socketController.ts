@@ -26,7 +26,6 @@ export class SocketController
 				return;
 			}
 		
-			// ETAPE 1
 			try {
 				const result = await this.database.conversationController.getAllConversationsForUser(userId as string);
 		
@@ -34,10 +33,69 @@ export class SocketController
 				conversations.forEach((conversation) => {
 					socket.join(conversation.id.toString());
 				});
-				
 			} catch (error) {
 				console.error(error);
 			}
+
+			socket.on("@onConnected", (data) => {
+				const { userId } = data;
+		
+				this.io.emit("@onConnected", { userId });
+			});
+
+			socket.on("@onDisconnected", (data) => {
+				const { userId } = data;
+		
+				this.io.emit("@onDisconnected", { userId });
+			});
+
+			socket.on("@newConversation", (data) => {
+				const { conversation } = data;
+		
+				this.io.to(conversation._id.toString()).emit("@newConversation", { conversation });
+			});
+		
+			// Listen for the conversationDeleted event
+			socket.on("@conversationDeleted", (data) => {
+				const { conversation } = data;
+		
+				this.io.to(conversation._id.toString()).emit("@conversationDeleted", { conversation });
+			});
+		
+			// Listen for the conversationSeen event
+			socket.on("@conversationSeen", (data) => {
+				const { conversation } = data;
+		
+				this.io.to(conversation._id.toString()).emit("@conversationSeen", { conversation });
+			});
+		
+			// Listen for the newMessage, messageEdited, reactionAdded, and messageDeleted events
+			socket.on("@newMessage", (data) => {
+				const { message } = data;
+		
+				this.io.to(message.conversationId.toString()).emit("@newMessage", { message });
+			});
+		
+			// Listen for the messageEdited event
+			socket.on("@messageEdited", (data) => {
+				const { message } = data;
+		
+				this.io.to(message.conversationId.toString()).emit("@messageEdited", { message });
+			});
+		
+			// Listen for the reactionAdded event
+			socket.on("@reactionAdded", (data) => {
+				const { message } = data;
+		
+				this.io.to(message.conversationId.toString()).emit("@reactionAdded", { message });
+			});
+		
+			// Listen for the messageDeleted event
+			socket.on("@messageDeleted", (data) => {
+				const { message } = data;
+		
+				this.io.to(message.conversationId.toString()).emit("@messageDeleted", { message });
+			});
 		});
 	}
 
