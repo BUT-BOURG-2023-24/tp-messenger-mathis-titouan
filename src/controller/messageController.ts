@@ -24,26 +24,22 @@ class MessageController {
         }
     }
 
-    public async deleteMessageById(messageId : string) {
+    // ne delete pas le message mais le marque comme deleted
+    public async deleteMessageById(messageId: string) {
         try {
-            const message = await MessageModel.findByIdAndDelete(messageId);
-            return message;
+            const updatedMessage = await MessageModel.findByIdAndUpdate(
+                messageId,
+                { deleted: true },
+                { new: true }
+            );
+            return updatedMessage;
         } catch (error) {
             console.error(error);
             return error;
         }
     }
 
-    public async deleteMessagesByIds(messageIds : string[]) {
-        try {
-            const messages = await MessageModel.deleteMany({ _id: { $in: messageIds } });
-            return messages;
-        } catch (error) {
-            console.error(error);
-            return error;
-        }
-    }
-
+    // delete vraiment tous les messages
     public async deleteAllMessages() {
         try {
             const messages = await MessageModel.deleteMany();
@@ -54,9 +50,13 @@ class MessageController {
         }
     }
 
-    public async editMessageById(messageId : string, message : string) {
+    public async editMessageById(messageId: string, message: string) {
         try {
-            const updatedMessage = await MessageModel.findByIdAndUpdate(messageId, { message }, { new: true });
+            const updatedMessage = await MessageModel.findByIdAndUpdate(
+                messageId,
+                { content: message, edited: true },
+                { new: true }
+            );
             return updatedMessage;
         } catch (error) {
             console.error(error);
@@ -64,8 +64,27 @@ class MessageController {
         }
     }
 
-    public async reactToMessage(messageId : string, userId : string, reaction : string) {
-        
+    public async reactToMessage(messageId: string, userId: string, reaction: string) {
+        try {
+            const message = await MessageModel.findById(messageId);
+            if (!message) {
+                throw new Error(`Message with ID ${messageId} not found`);
+            }
+
+            const reactions = message.reactions || {};
+            reactions[userId] = reaction as "HAPPY" | "SAD" | "THUMBSUP" | "THUMBSDOWN" | "LOVE";
+
+            const updatedMessage = await MessageModel.findByIdAndUpdate(
+                messageId,
+                { reactions },
+                { new: true }
+            );
+
+            return updatedMessage;
+        } catch (error) {
+            console.error(error);
+            return error;
+        }
     }
 }
 
