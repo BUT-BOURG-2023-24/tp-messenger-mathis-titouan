@@ -103,7 +103,7 @@ class JoiRequestValidator
 		let validator = null;
 		for(let i = 0; i < this.validators.length; i++)
 		{
-			if(this.validators[i].route === request.route.path)
+			if(this.validators[i].route === request.baseUrl + request.route.path)
 			{
 				validator = this.validators[i];
 				break;

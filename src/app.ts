@@ -29,10 +29,7 @@ function makeApp(database: Database)
 	app.use(express.json());
 
 	// Configuration de CORS pour autoriser les requêtes depuis un domaine spécifique
-	app.use(cors({
-		origin: '*', // Remplacez par le domaine que vous souhaitez autoriser
-		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-	}));
+	app.use(cors());
 
 	// Connects the routes to the app.
 	app.use('/users', userRoutes);

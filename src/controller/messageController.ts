@@ -1,6 +1,4 @@
-import { Request, Response } from 'express';
-import ConversationModel from '../database/Mongo/Models/ConversationModel';
-import  MessageModel from '../database/Mongo/Models/MessageModel';
+import MessageModel, {IMessage} from '../database/Mongo/Models/MessageModel';
 
 class MessageController {
 
@@ -24,15 +22,21 @@ class MessageController {
         }
     }
 
-    public async deleteMessageById(messageId : string) {
+    public async deleteMessageById(messageId: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const message = await MessageModel.findByIdAndDelete(messageId);
-            return message;
+            const message = await MessageModel.findByIdAndDelete(messageId) as IMessage | null;
+
+            if (!message) {
+                return { code: 404, error: 'Message not found' };
+            }
+
+            return { message };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
+
 
     public async deleteMessagesByIds(messageIds : string[]) {
         try {
@@ -54,13 +58,18 @@ class MessageController {
         }
     }
 
-    public async editMessageById(messageId : string, message : string) {
+    public async editMessageById(messageId: string, newMessageContent: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const updatedMessage = await MessageModel.findByIdAndUpdate(messageId, { message }, { new: true });
-            return updatedMessage;
+            const message = await MessageModel.findByIdAndUpdate(messageId, { newMessageContent }, { new: true }) as IMessage | null;
+
+            if (message === null) {
+                return { code: 404, error: 'Message not found' };
+            }
+
+            return { message };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 
