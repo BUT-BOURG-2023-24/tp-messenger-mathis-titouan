@@ -24,7 +24,11 @@ class MessageController {
 
     public async deleteMessageById(messageId: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const message = await MessageModel.findByIdAndDelete(messageId) as IMessage | null;
+            const message = await MessageModel.findByIdAndUpdate(
+                messageId,
+                { deleted: true },
+                { new: true }
+            ) as IMessage | null;
 
             if (!message) {
                 return { code: 404, error: 'Message not found' };
@@ -51,8 +55,13 @@ class MessageController {
 
     public async editMessageById(messageId: string, newMessageContent: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
-            const updatedMessage = await MessageModel.findByIdAndUpdate(messageId, { message }, { new: true });
-            return updatedMessage;
+            const message = await MessageModel.findByIdAndUpdate(messageId, { content : newMessageContent, edited: true }, { new: true }) as IMessage | null;
+
+            if (message === null) {
+                return { code: 404, error: 'Message not found' };
+            }
+
+            return { message };
         } catch (error) {
             console.error(error);
             return { code: 500, error: 'Internal server error' };
