@@ -1,16 +1,20 @@
 import config from "../config";
 import mongoose from "mongoose";
 import type { UserController } from "../controller/userController";
+import type { MessageController } from "../controller/messageController";
+
 
 class Database 
 {
 	fromTest: boolean;
 	userController : UserController;
+	messageController : MessageController
 
-	constructor(fromTest: boolean, userController: UserController) 
+	constructor(fromTest: boolean, userController: UserController, messageController: MessageController) 
 	{
 		this.fromTest = fromTest;
 		this.userController = userController;
+		this.messageController = messageController;
 
 	}
 	
