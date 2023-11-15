@@ -25,78 +25,70 @@ export class SocketController
 				socket.disconnect();
 				return;
 			}
-		
+
 			try {
 				const result = await this.database.conversationController.getAllConversationsForUser(userId as string);
-		
+
 				const conversations = result as IConversation[];
 				conversations.forEach((conversation) => {
 					socket.join(conversation.id.toString());
 				});
+
+				socket.broadcast.emit("onConnected", { userId });
+
 			} catch (error) {
 				console.error(error);
 			}
 
-			socket.on("@onConnected", (data) => {
-				const { userId } = data;
-		
-				this.io.emit("@onConnected", { userId });
-			});
 
-			socket.on("@onDisconnected", (data) => {
-				const { userId } = data;
-		
-				this.io.emit("@onDisconnected", { userId });
+			socket.on("disconnect", () => {
+				socket.broadcast.emit("onDisconnected", { userId });
 			});
 
 			socket.on("@newConversation", (data) => {
 				const { conversation } = data;
-		
-				this.io.to(conversation._id.toString()).emit("@newConversation", { conversation });
+				const conversationId = conversation._id.toString();
+				socket.join(conversationId);
 			});
-		
-			// Listen for the conversationDeleted event
+
 			socket.on("@conversationDeleted", (data) => {
 				const { conversation } = data;
-		
-				this.io.to(conversation._id.toString()).emit("@conversationDeleted", { conversation });
+				const conversationId = conversation._id.toString();
+				socket.leave(conversationId);
 			});
-		
-			// Listen for the conversationSeen event
+
 			socket.on("@conversationSeen", (data) => {
 				const { conversation } = data;
-		
-				this.io.to(conversation._id.toString()).emit("@conversationSeen", { conversation });
+				const conversationId = conversation._id.toString();
+				socket.to(conversationId).emit("@conversationSeen", data);
 			});
-		
-			// Listen for the newMessage, messageEdited, reactionAdded, and messageDeleted events
+
 			socket.on("@newMessage", (data) => {
 				const { message } = data;
-		
-				this.io.to(message.conversationId.toString()).emit("@newMessage", { message });
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@newMessage", data);
 			});
-		
-			// Listen for the messageEdited event
+
 			socket.on("@messageEdited", (data) => {
 				const { message } = data;
-		
-				this.io.to(message.conversationId.toString()).emit("@messageEdited", { message });
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@messageEdited", data);
 			});
-		
-			// Listen for the reactionAdded event
+
 			socket.on("@reactionAdded", (data) => {
 				const { message } = data;
-		
-				this.io.to(message.conversationId.toString()).emit("@reactionAdded", { message });
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@reactionAdded", data);
 			});
-		
-			// Listen for the messageDeleted event
+
 			socket.on("@messageDeleted", (data) => {
 				const { message } = data;
-		
-				this.io.to(message.conversationId.toString()).emit("@messageDeleted", { message });
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@messageDeleted", data);
 			});
+			
 		});
+		
 	}
 
 	// Cette fonction vous sert juste de debug.
