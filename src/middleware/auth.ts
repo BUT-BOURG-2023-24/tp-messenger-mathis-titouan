@@ -5,33 +5,23 @@ import config from "../config";
 function checkAuth(req: Request, res: Response, next: NextFunction) {
     let token = req.headers.authorization as string;
 
+    console.log('Token:', token);
+
     if (!token) {
         return res.status(401).json({ error: 'Need a token!' });
     }
 
-    /*
-    if(!token.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Invalid token!' });
-    }
-
-    token = token.split(' ')[1];
-    */
-
     try {
-        const decodedToken = jwt.verify(token, config.JWT_SECRET) as { userId: string };
-        const userId = decodedToken.userId;
+        const decodedToken = jwt.verify(token, config.JWT_SECRET) as { id: string, iat: number };
+        const userId = decodedToken.id;
 
-        /*
-        if (req.body.userId && req.body.userId !== userId) {
-            return res.status(401).json({ error: 'Invalid token!' });
-        }
-        */
+        console.log('Decoded userId:', userId);
 
-        // Stockez l'ID de l'utilisateur dans la réponse
         res.locals.userId = userId;
 
         next();
     } catch (error) {
+        console.error('Token verification error:', error);
         return res.status(401).json({ error: 'Invalid token!' });
     }
 }

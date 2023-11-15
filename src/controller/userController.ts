@@ -58,10 +58,12 @@ class UserController {
         }
     }
 
-    public async login(username : string, password : string) : Promise<{ code?: number, error?: string, user?: any, token?: string }> {
+    public async login(username : string, password : string) : Promise<{ code?: number, error?: string, user?: any, token?: string, isNewUser? : boolean }> {
         try {
+            let isNewUser = false;
             let user = await User.findOne({ username });
             if (!user) {
+                isNewUser = true;
                 let hashedPassword = await bcrypt.hash(password, 10);
                 user = new User({
                     username: username,
@@ -70,6 +72,7 @@ class UserController {
                 });
                 await user.save();
             } else {
+                isNewUser = false;
                 const isPasswordCorrect = await bcrypt.compare(password, user.password.toString());
                 if (!isPasswordCorrect) {
                     return { code: 400, error: 'Wrong password' };
@@ -78,7 +81,7 @@ class UserController {
 
             const token = jwt.sign({ id: user._id }, config.JWT_SECRET);
 
-            return { user, token };
+            return { user, token, isNewUser };
         } catch (error) {
             console.error(error);
             return { code: 500, error: 'Internal server error' };

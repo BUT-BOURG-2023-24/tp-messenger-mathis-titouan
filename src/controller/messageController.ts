@@ -2,13 +2,13 @@ import MessageModel, {IMessage} from '../database/Mongo/Models/MessageModel';
 
 class MessageController {
 
-    public async createMessage (conversationId : string, senderId : string, message : string) {
+    public async createMessage(conversationId: string, senderId: string, message: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
         try {
             const newMessage = await MessageModel.create({ conversationId, senderId, message });
-            return newMessage;
+            return { message: newMessage };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 

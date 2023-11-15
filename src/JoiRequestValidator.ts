@@ -45,7 +45,7 @@ class JoiRequestValidator
 			route: "/conversations/:id",
 			method: "POST",
 			validatorSchema: joi.object({
-				content: joi.string().required(),
+				messageContent: joi.string().required(),
 				messageReplyId: joi.string().optional(),
 			})
 		},

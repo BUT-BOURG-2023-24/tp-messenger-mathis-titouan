@@ -1,16 +1,18 @@
 import { Request, Response } from 'express';
-import ConversationModel from '../database/Mongo/Models/ConversationModel';
+import ConversationModel, {IConversation} from '../database/Mongo/Models/ConversationModel';
 import  MessageModel from '../database/Mongo/Models/MessageModel';
+import {date} from "joi";
+import {pickRandom} from "../pictures";
 
 class ConversationController {
 
-    public async createConversation (name : string, userIds : string[]) {
+    public async createConversation(userIds: string[]): Promise<{ code?: number, error?: string, conversation?: IConversation }> {
         try {
-            const newConversation = await ConversationModel.create({ name, userIds });
-            return newConversation;
+            const newConversation = await ConversationModel.create({ title: pickRandom(), participants: userIds, lastUpdate: new Date });
+            return { conversation: newConversation };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 
@@ -24,27 +26,32 @@ class ConversationController {
         }
     }
 
-    public async deleteConversation(conversationId : string) {
+    public async deleteConversation(conversationId : string) : Promise<{ code?: number, error?: string, conversation?: IConversation }> {
         try {
             const conversation = await ConversationModel.findByIdAndDelete(conversationId);
-            return conversation;
+
+            if (!conversation) {
+                return { code: 404, error: 'Conversation not found' };
+            }
+
+            return { conversation };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code : 500, error: 'Internal server error' };
         }
     }
 
-    public async getAllConversationsForUser(userId : string) {
+    public async getAllConversationsForUser(userId: string): Promise<{ code?: number, error?: string, conversations?: IConversation[] }> {
         try {
-            const conversations = await ConversationModel.find({ userIds: { $in: userId } });
-            return conversations;
+            const conversations = await ConversationModel.find({ participants: { $in: [userId] } });
+            return { conversations };
         } catch (error) {
             console.error(error);
-            return error;
+            return { code: 500, error: 'Internal server error' };
         }
     }
 
-    public async getConversationWithParticipants(userIds : string[]) {
+    public async getConverationWithParticipants(userIds : string[]) {
         try {
             const conversation = await ConversationModel.findOne({ userIds: { $all: userIds } });
             return conversation;
