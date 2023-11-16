@@ -21,22 +21,29 @@ router.post('/', joiValidator, auth.checkAuth, async (req : Request, res : Respo
     }
 });
 
-router.get('/', joiValidator, auth.checkAuth, async (req : Request, res : Response) => {
-   try {
+router.get('/', joiValidator, auth.checkAuth, async (req: Request, res: Response) => {
+    try {
+        console.log('user id : ' + res.locals.userId as string);
 
-       console.log('user id : ' + res.locals.userId as string);
+        const result = await req.app.locals.database.conversationController.getAllConversationsForUser(
+            res.locals.userId as string
+        );
 
-         const result = await req.app.locals.database.conversationController.getAllConversationsForUser(res.locals.userId as string);
+        console.log('Result:', result);
 
-       if (result.error) {
-              return res.status(result.code || 500).json({ error: result.error });
-         } else {
-              return res.status(200).json(result);
-         }
-   } catch (error) {
-         return res.status(500).json({ error: 'Internal server error' });
-   }
+        if ('error' in result) {
+            // Utilisez 'error' in result pour vérifier le type
+            return res.status(500).json({ error: result.error });
+        } else {
+            // TypeScript sait que result est de type IConversation[] ici
+            return res.status(200).json({ conversations: result });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
+
 
 router.delete('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Response) => {
    try {

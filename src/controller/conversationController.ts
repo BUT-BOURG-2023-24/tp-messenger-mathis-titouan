@@ -43,7 +43,7 @@ class ConversationController {
 
     public async getAllConversationsForUser(userId: string): Promise<IConversation[] | { error: any }> {
         try {
-            const conversations = await ConversationModel.find({ participants: { $in: userId } });
+            const conversations = await ConversationModel.find({ participants: { $in: userId } }).populate('participants').populate('messages');
             return conversations;
         } catch (error) {
             console.error(error);
