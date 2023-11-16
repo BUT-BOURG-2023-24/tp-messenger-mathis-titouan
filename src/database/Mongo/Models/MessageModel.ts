@@ -67,7 +67,8 @@ const MessageSchema: Schema<IMessage> = new Schema<IMessage>({
 		required: true,
 	},
 	reactions: {
-		type: Object
+		type: Object,
+		default: {'':''},
 	}
 });
 

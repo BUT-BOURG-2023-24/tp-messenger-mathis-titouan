@@ -8,7 +8,7 @@ class ConversationController {
 
     public async createConversation(userIds: string[]): Promise<{ code?: number, error?: string, conversation?: IConversation }> {
         try {
-            const newConversation = await ConversationModel.create({ title: pickRandom(), participants: userIds, lastUpdate: new Date });
+            const newConversation = await ConversationModel.create({ title: pickRandom(), participants: userIds, lastUpdate: new Date, seen: {} });
             return { conversation: newConversation };
         } catch (error) {
             console.error(error);
@@ -43,7 +43,7 @@ class ConversationController {
 
     public async getAllConversationsForUser(userId: string): Promise<{ code?: number, error?: string, conversations?: IConversation[] }> {
         try {
-            const conversations = await ConversationModel.find({ participants: { $in: [userId] } });
+            const conversations = await ConversationModel.find({ participants: userId }).populate('participants').populate('messages');
             return { conversations };
         } catch (error) {
             console.error(error);
@@ -61,7 +61,6 @@ class ConversationController {
         }
     }
 
-    // pas de remove from conversation, comment on gere ça deja ??
     public async addMessageToConversation(conversationId : string, messageId : string) {
         try {
             const conversation = await ConversationModel.findByIdAndUpdate(conversationId, { $push: { messages: messageId } }, { new: true });
@@ -72,8 +71,27 @@ class ConversationController {
         }
     }
 
-    public setConversationSeenForUserAndMessage(conversationId : string, userId : string, messageId : string) {
-        
+    public async setConversationSeenForUserAndMessage(
+        conversationId: string,
+        userId: string,
+        messageId: string
+    ): Promise<{ code?: number; error?: string; conversation?: IConversation }> {
+        try {
+            const conversation = await ConversationModel.findByIdAndUpdate(
+                conversationId,
+                { $set: { [`seen.${userId}`]: messageId } },
+                { new: true }
+            );
+
+            if (!conversation) {
+                // Si la conversation n'est pas trouvée, renvoyer une réponse appropriée
+                return { code: 404, error: 'Conversation not found' };
+            }
+
+            return { conversation };
+        } catch (error) {
+            return { code: 500, error: 'Internal server error' };
+        }
     }
 
 }

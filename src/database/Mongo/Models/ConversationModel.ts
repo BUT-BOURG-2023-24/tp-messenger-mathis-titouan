@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { MongooseID } from "../../../types";
 import {IUser} from "./UserModel";
+import {IMessage} from "./MessageModel";
 
 export interface IConversation extends Document {
 	participants: {
@@ -8,7 +9,7 @@ export interface IConversation extends Document {
 		required: true,
 	},
 	messages: {
-		type: MongooseID[],
+		type: IMessage[],
 		required: true,
 	},
 	title: {
@@ -20,9 +21,8 @@ export interface IConversation extends Document {
 		required: true,
 	},
 	seen: {
-		type: MongooseID,
-		required: false,
-	}
+		[userId: string]: MongooseID,
+	};
 }
 
 const conversationSchema: Schema<IConversation> = new Schema<IConversation>({
@@ -31,7 +31,7 @@ const conversationSchema: Schema<IConversation> = new Schema<IConversation>({
 		require: true,
 	},
 	messages: {
-		type: [Schema.Types.ObjectId],
+		type: [{ type : Schema.Types.ObjectId, ref : 'Message' }],
 		require: true,
 	},
 	title: {
@@ -43,8 +43,9 @@ const conversationSchema: Schema<IConversation> = new Schema<IConversation>({
 		require: true,
 	},
 	seen: {
-		type: Schema.Types.ObjectId,
-		require: false,
+		type: Schema.Types.Mixed,
+		require: true,
+		default: {}
 	}
 });
 

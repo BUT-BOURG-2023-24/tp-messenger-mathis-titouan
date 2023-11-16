@@ -1,16 +1,33 @@
 import MessageModel, {IMessage} from '../database/Mongo/Models/MessageModel';
+import ConversationModel from "../database/Mongo/Models/ConversationModel";
 
 class MessageController {
 
-    public async createMessage(conversationId: string, senderId: string, message: string): Promise<{ code?: number, error?: string, message?: IMessage }> {
+    public async createMessage(
+        conversationId: string,
+        senderId: string,
+        message: string,
+        replyTo?: string
+    ): Promise<{ code?: number; error?: string; message?: IMessage }> {
         try {
-            const newMessage = await MessageModel.create({ conversationId, senderId, message });
+            const newMessage = await MessageModel.create({
+                conversationId: conversationId,
+                from: senderId,
+                content: message,
+                postedAt: new Date(), // Utilisez new Date() pour obtenir l'instant actuel
+                replyTo: replyTo,
+                edited: false,
+                deleted: false,
+                reactions: {} // Ajout d'une valeur par défaut pour reactions
+            });
+
             return { message: newMessage };
         } catch (error) {
             console.error(error);
             return { code: 500, error: 'Internal server error' };
         }
     }
+
 
     public async getMessagesByConversationId(conversationId : string) {
         try {
