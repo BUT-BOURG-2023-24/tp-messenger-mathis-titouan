@@ -1,4 +1,5 @@
 import type { Database } from "../database/database";
+import ConversationModel, { IConversation } from '../database/Mongo/Models/ConversationModel'
 import { Server } from "socket.io";
 
 export class SocketController
@@ -18,21 +19,76 @@ export class SocketController
 
 	connect()
 	{
-		this.io.on("connection", (socket) => {
-			/*
-			// ETAPE 1: Trouver toutes les conversations ou participe l'utilisateur.
+		this.io.on("connection", async (socket) => {
 			const userId = socket.handshake.headers.userId;
-			const conversations = getConversationsByUserId(userId);
+			if (!userId) {
+				socket.disconnect();
+				return;
+			}
 
-			// ETAPE 2: Rejoindre chaque room ayant pour nom l'ID de la conversation.
+			try {
+				const result = await this.database.conversationController.getAllConversationsForUser(userId as string);
 
-			conversations.forEach(conversation => {
-				const roomId = conversation.id.toString();
-				socket.join(roomId);
+				const conversations = result as IConversation[];
+				conversations.forEach((conversation) => {
+					socket.join(conversation.id.toString());
+				});
+
+				socket.broadcast.emit("onConnected", { userId });
+
+			} catch (error) {
+				console.error(error);
+			}
+
+
+			socket.on("disconnect", () => {
+				socket.broadcast.emit("onDisconnected", { userId });
 			});
 
-			 */
+			socket.on("@newConversation", (data) => {
+				const { conversation } = data;
+				const conversationId = conversation._id.toString();
+				socket.join(conversationId);
+			});
+
+			socket.on("@conversationDeleted", (data) => {
+				const { conversation } = data;
+				const conversationId = conversation._id.toString();
+				socket.leave(conversationId);
+			});
+
+			socket.on("@conversationSeen", (data) => {
+				const { conversation } = data;
+				const conversationId = conversation._id.toString();
+				socket.to(conversationId).emit("@conversationSeen", data);
+			});
+
+			socket.on("@newMessage", (data) => {
+				const { message } = data;
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@newMessage", data);
+			});
+
+			socket.on("@messageEdited", (data) => {
+				const { message } = data;
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@messageEdited", data);
+			});
+
+			socket.on("@reactionAdded", (data) => {
+				const { message } = data;
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@reactionAdded", data);
+			});
+
+			socket.on("@messageDeleted", (data) => {
+				const { message } = data;
+				const conversationId = message.conversationId.toString();
+				socket.to(conversationId).emit("@messageDeleted", data);
+			});
+			
 		});
+		
 	}
 
 	// Cette fonction vous sert juste de debug.

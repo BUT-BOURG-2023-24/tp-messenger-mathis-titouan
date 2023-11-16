@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import ConversationModel, {IConversation} from '../database/Mongo/Models/ConversationModel';
+import ConversationModel, { IConversation } from '../database/Mongo/Models/ConversationModel'
 import  MessageModel from '../database/Mongo/Models/MessageModel';
 import {date} from "joi";
 import {pickRandom} from "../pictures";
@@ -41,13 +41,13 @@ class ConversationController {
         }
     }
 
-    public async getAllConversationsForUser(userId: string): Promise<{ code?: number, error?: string, conversations?: IConversation[] }> {
+    public async getAllConversationsForUser(userId: string): Promise<IConversation[] | { error: any }> {
         try {
-            const conversations = await ConversationModel.find({ participants: userId }).populate('participants').populate('messages');
-            return { conversations };
+            const conversations = await ConversationModel.find({ participants: { $in: userId } });
+            return conversations;
         } catch (error) {
             console.error(error);
-            return { code: 500, error: 'Internal server error' };
+            return { error };
         }
     }
 
