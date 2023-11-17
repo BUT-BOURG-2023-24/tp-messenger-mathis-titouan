@@ -16,13 +16,13 @@ class ConversationController {
         }
     }
 
-    public async getConversationById(conversationId : string) {
+    public async getConversationById(conversationId : string) : Promise<IConversation | { error: any } | null>{
         try {
-            const conversation = await ConversationModel.findById(conversationId);
+            const conversation = await ConversationModel.findById(conversationId).populate('participants').populate('messages');
             return conversation;
         } catch (error) {
             console.error(error);
-            return error;
+            return { error };
         }
     }
 
@@ -81,7 +81,7 @@ class ConversationController {
                 conversationId,
                 { $set: { [`seen.${userId}`]: messageId } },
                 { new: true }
-            );
+            ).populate('participants').populate('messages');
 
             if (!conversation) {
                 // Si la conversation n'est pas trouvée, renvoyer une réponse appropriée

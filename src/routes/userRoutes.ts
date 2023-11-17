@@ -35,7 +35,7 @@ router.get('/online', joiValidator,  async (req: Request, res: Response) => {
         if (result.error) {
             return res.status(result.code || 500).json({ error: result.error });
         } else {
-            return res.status(200).json({ users: result.users });
+            return res.status(200).json({ users: [] });
         }
     } catch (error) {
         console.error(error);

@@ -1,3 +1,5 @@
+import {IMessage} from "../database/Mongo/Models/MessageModel";
+
 const auth = require('../middleware/auth');
 const express = require('express');
 const router = express.Router();
@@ -14,6 +16,7 @@ router.put('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Res
         if (result.error) {
             return res.status(result.code || 500).json({ error: result.error });
         } else {
+            req.app.locals.socketController.emitEditMessage(result.message as IMessage);
             return res.status(200).json({ message: result });
         }
     } catch (error) {
@@ -49,6 +52,7 @@ router.delete('/:id', joiValidator, auth.checkAuth, async (req : Request, res : 
          if (result.error) {
               return res.status(result.code || 500).json({ error: result.error });
          } else {
+                req.app.locals.socketController.emitDeleteMessage(result.message as IMessage);
               return res.status(200).json({ message: result });
          }
    } catch (error) {

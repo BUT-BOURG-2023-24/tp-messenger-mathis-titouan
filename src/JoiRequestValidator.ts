@@ -92,8 +92,6 @@ class JoiRequestValidator
 	{
 		// request.baseUrl contient l'URL de base, avant application des middlewares.
 		// request.route.path contient l'URL que vous déclarez dans votre middleware de routage.
-		console.log(request.baseUrl);
-		console.log(request.route.path);
 
 		/* 
 			ETAPE 1:

@@ -18,7 +18,7 @@ class MessageController {
                 replyTo: replyTo,
                 edited: false,
                 deleted: false,
-                reactions: {} // Ajout d'une valeur par défaut pour reactions
+                reactions: new Map<string, string>()
             });
 
             return { message: newMessage };

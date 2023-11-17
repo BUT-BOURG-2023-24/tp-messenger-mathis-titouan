@@ -36,16 +36,15 @@ const conversationSchema: Schema<IConversation> = new Schema<IConversation>({
 	},
 	title: {
 		type: String,
-		require: false,
+		require: true,
 	},
 	lastUpdate: {
 		type: Date,
 		require: true,
 	},
 	seen: {
-		type: Schema.Types.Mixed,
-		require: true,
-		default: {}
+		type: Map,
+		of: String,
 	}
 });
 

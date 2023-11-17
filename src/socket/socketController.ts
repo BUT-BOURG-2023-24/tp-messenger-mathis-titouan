@@ -1,6 +1,8 @@
 import type { Database } from "../database/database";
 import ConversationModel, { IConversation } from '../database/Mongo/Models/ConversationModel'
 import { Server } from "socket.io";
+import {IUser} from "../database/Mongo/Models/UserModel";
+import {IMessage} from "../database/Mongo/Models/MessageModel";
 
 export class SocketController
 {
@@ -8,6 +10,7 @@ export class SocketController
 		Pour savoir si un utilisateur est connecté depuis la route /online,
 		Nous devons stocker une correspondance socketId <=> userId.
 	*/
+	private socketIdToUserId: Map<string, string> = new Map<string, string>();
 
 	constructor(private io:Server, private database:Database)
 	{
@@ -20,7 +23,7 @@ export class SocketController
 	connect()
 	{
 		this.io.on("connection", async (socket) => {
-			const userId = socket.handshake.headers.userId;
+			const userId = socket.handshake.headers.userid;
 			if (!userId) {
 				socket.disconnect();
 				return;
@@ -28,68 +31,72 @@ export class SocketController
 
 			try {
 				const result = await this.database.conversationController.getAllConversationsForUser(userId as string);
-
 				const conversations = result as IConversation[];
 				conversations.forEach((conversation) => {
-					socket.join(conversation.id.toString());
+					socket.join(conversation._id.toString());
 				});
+				this.socketIdToUserId.set(socket.id, userId as string);
 
-				socket.broadcast.emit("onConnected", { userId });
+				socket.broadcast.emit("@onConnected", { userId });
 
 			} catch (error) {
 				console.error(error);
 			}
 
-
 			socket.on("disconnect", () => {
-				socket.broadcast.emit("onDisconnected", { userId });
-			});
-
-			socket.on("@newConversation", (data) => {
-				const { conversation } = data;
-				const conversationId = conversation._id.toString();
-				socket.join(conversationId);
-			});
-
-			socket.on("@conversationDeleted", (data) => {
-				const { conversation } = data;
-				const conversationId = conversation._id.toString();
-				socket.leave(conversationId);
-			});
-
-			socket.on("@conversationSeen", (data) => {
-				const { conversation } = data;
-				const conversationId = conversation._id.toString();
-				socket.to(conversationId).emit("@conversationSeen", data);
-			});
-
-			socket.on("@newMessage", (data) => {
-				const { message } = data;
-				const conversationId = message.conversationId.toString();
-				socket.to(conversationId).emit("@newMessage", data);
-			});
-
-			socket.on("@messageEdited", (data) => {
-				const { message } = data;
-				const conversationId = message.conversationId.toString();
-				socket.to(conversationId).emit("@messageEdited", data);
-			});
-
-			socket.on("@reactionAdded", (data) => {
-				const { message } = data;
-				const conversationId = message.conversationId.toString();
-				socket.to(conversationId).emit("@reactionAdded", data);
-			});
-
-			socket.on("@messageDeleted", (data) => {
-				const { message } = data;
-				const conversationId = message.conversationId.toString();
-				socket.to(conversationId).emit("@messageDeleted", data);
+				this.socketIdToUserId.delete(socket.id);
+				socket.broadcast.emit("@onDisconnected", { userId });
 			});
 			
 		});
 		
 	}
+
+	private getUserSocketId(userId: string) {
+		for(let [socketId, id] of this.socketIdToUserId.entries()) {
+			if (id === userId) {
+				return socketId;
+			}
+		}
+		return null;
+	}
+
+	public emitNewConversation(conversation: IConversation, participants: string[]) {
+		participants.forEach((participant) => {
+			let socketId = this.getUserSocketId(participant);
+			if(socketId) {
+				this.io.sockets.sockets.get(socketId)?.join(conversation._id.toString());
+			}
+		});
+		this.io.to(conversation._id.toString()).emit("@newConversation", { conversation });
+	}
+
+	public emitDeleteConversation(conversation: IConversation) {
+		const conversationId = conversation._id.toString();
+		this.io.to(conversationId).emit("@conversationDeleted", { conversation });
+	}
+
+	public emitSeenConversation(conversation: IConversation) {
+		this.io.to(conversation._id.toString()).emit("@conversationSeen", { conversation });
+	}
+
+	public emitNewMessage(conversation: IConversation, message: IMessage) {
+		const conversationId = conversation._id.toString();
+		this.io.to(conversationId).emit("@newMessage", { message });
+	}
+
+
+	public emitEditMessage(message: IMessage) {
+		const conversationId = message.conversationId.toString();
+		this.io.to(conversationId).emit("@messageEdited", { message });
+	}
+
+	public emitDeleteMessage(message: IMessage) {
+		const conversationId = message.conversationId.toString();
+		this.io.to(conversationId).emit("@messageDeleted", { message });
+	}
+
+
 
 	// Cette fonction vous sert juste de debug.
 	// Elle permet de log l'informations pour chaque changement d'une room. 
