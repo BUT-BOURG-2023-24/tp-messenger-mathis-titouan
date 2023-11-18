@@ -61,6 +61,10 @@ export class SocketController
 		return null;
 	}
 
+	public getConnectedUsers() {
+		return Array.from(this.socketIdToUserId.values());
+	}
+
 	public emitNewConversation(conversation: IConversation, participants: string[]) {
 		participants.forEach((participant) => {
 			let socketId = this.getUserSocketId(participant);
@@ -94,6 +98,11 @@ export class SocketController
 	public emitDeleteMessage(message: IMessage) {
 		const conversationId = message.conversationId.toString();
 		this.io.to(conversationId).emit("@messageDeleted", { message });
+	}
+
+	public emitReaction(message: IMessage) {
+		const conversationId = message.conversationId.toString();
+		this.io.to(conversationId).emit("@reactionAdded ", { message });
 	}
 
 

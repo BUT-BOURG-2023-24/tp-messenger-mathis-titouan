@@ -48,13 +48,13 @@ class UserController {
         }
     }
 
-    public async getUsersByIds(userIds : string[]) {
+    public async getUsersByIds(userIds : string[]) : Promise<IUser[] | { error: any }> {
         try {
             const users = await User.find({ _id: { $in: userIds } });
             return users;
         } catch (error) {
             console.error(error);
-            return error;
+            return { error: 'Internal server error' };
         }
     }
 

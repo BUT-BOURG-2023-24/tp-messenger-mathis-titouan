@@ -30,10 +30,10 @@ router.post('/login', joiValidator, async (req: Request, res: Response) => {
 // À refaire
 router.get('/online', joiValidator,  async (req: Request, res: Response) => {
     try {
-        const result = await req.app.locals.database.userController.getAllUsers();
+        const result = await req.app.locals.database.userController.getUsersByIds(res.locals.socketController.getConnectedUsers() as string[]);
 
-        if (result.error) {
-            return res.status(result.code || 500).json({ error: result.error });
+        if ('error' in result) {
+            return res.status(500).json({ error: result.error });
         } else {
             return res.status(200).json({ users: [] });
         }

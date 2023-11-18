@@ -24,24 +24,23 @@ router.put('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Res
     }
 });
 
-/*
 router.post('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Response) => {
     try {
         const { id } = req.params;
         const { reaction } = req.body;
 
-        const result = await req.app.locals.database.messageController.reactToMessage(id, reaction);
+        const result = await req.app.locals.database.messageController.reactToMessage(id, res.locals.userId as string, reaction);
 
-        if (result.error) {
-            return res.status(result.code || 500).json({ error: result.error });
+        if ('error' in result) {
+            return res.status(500).json({ error: result.error });
         } else {
+            res.locals.socketController.emitReaction(result as IMessage);
             return res.status(200).json({ message: result });
         }
     } catch (error) {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-*/
 
 router.delete('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Response) => {
    try {

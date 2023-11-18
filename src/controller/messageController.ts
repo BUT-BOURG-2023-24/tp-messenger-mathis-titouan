@@ -1,5 +1,5 @@
 import MessageModel, {IMessage} from '../database/Mongo/Models/MessageModel';
-import ConversationModel from "../database/Mongo/Models/ConversationModel";
+import ConversationModel, {IConversation} from "../database/Mongo/Models/ConversationModel";
 
 class MessageController {
 
@@ -85,7 +85,7 @@ class MessageController {
         }
     }
 
-    public async reactToMessage(messageId: string, userId: string, reaction: string) {
+    public async reactToMessage(messageId: string, userId: string, reaction: string) : Promise<IMessage | { error: any }> {
         try {
             const message = await MessageModel.findById(messageId);
             if (!message) {
@@ -101,10 +101,10 @@ class MessageController {
                 { new: true }
             );
 
-            return updatedMessage;
+            return updatedMessage as IMessage;
         } catch (error) {
             console.error(error);
-            return { code: 500, error: 'Internal server error' };
+            return { error: 'Internal server error' };
         }
     }
 }
