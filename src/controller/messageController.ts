@@ -85,21 +85,26 @@ class MessageController {
         }
     }
 
-    public async reactToMessage(messageId: string, userId: string, reaction: string) : Promise<IMessage | { error: any }> {
+    public async reactToMessage(messageId: string, userId: string, reaction: string): Promise<IMessage | { error: string }> {
         try {
             const message = await MessageModel.findById(messageId);
+
             if (!message) {
                 throw new Error(`Message with ID ${messageId} not found`);
             }
 
-            const reactions = message.reactions || {};
-            reactions[userId] = reaction as "HAPPY" | "SAD" | "THUMBSUP" | "THUMBSDOWN" | "LOVE";
+            const reactions = message.reactions || new Map<string, 'HAPPY' | 'SAD' | 'THUMBSUP' | 'THUMBSDOWN' | 'LOVE'>();
+            (reactions as any).set(userId, reaction as 'HAPPY' | 'SAD' | 'THUMBSUP' | 'THUMBSDOWN' | 'LOVE');
 
             const updatedMessage = await MessageModel.findByIdAndUpdate(
                 messageId,
                 { reactions },
-                { new: true }
+                { new: true } // Cette option renvoie le document mis à jour
             );
+
+            if (!updatedMessage) {
+                throw new Error(`Unable to update message with ID ${messageId}`);
+            }
 
             return updatedMessage as IMessage;
         } catch (error) {

@@ -102,7 +102,7 @@ export class SocketController
 
 	public emitReaction(message: IMessage) {
 		const conversationId = message.conversationId.toString();
-		this.io.to(conversationId).emit("@reactionAdded ", { message });
+		this.io.to(conversationId).emit("@reactionAdded", { message });
 	}
 
 

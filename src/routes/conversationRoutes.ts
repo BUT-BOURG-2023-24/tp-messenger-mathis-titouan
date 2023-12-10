@@ -88,8 +88,6 @@ router.post('/see/:id', joiValidator, auth.checkAuth, async (req : Request, res 
 
         const result = await req.app.locals.database.conversationController.setConversationSeenForUserAndMessage(id, res.locals.userId as string, messageId);
 
-        console.log(result)
-
         if (result.error) {
             return res.status(result.code || 500).json({ error: result.error });
         } else {

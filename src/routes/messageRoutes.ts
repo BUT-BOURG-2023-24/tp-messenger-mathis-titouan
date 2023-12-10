@@ -34,7 +34,7 @@ router.post('/:id', joiValidator, auth.checkAuth, async (req : Request, res : Re
         if ('error' in result) {
             return res.status(500).json({ error: result.error });
         } else {
-            res.locals.socketController.emitReaction(result as IMessage);
+            req.app.locals.socketController.emitReaction(result as IMessage);
             return res.status(200).json({ message: result });
         }
     } catch (error) {
@@ -51,8 +51,8 @@ router.delete('/:id', joiValidator, auth.checkAuth, async (req : Request, res : 
          if (result.error) {
               return res.status(result.code || 500).json({ error: result.error });
          } else {
-                req.app.locals.socketController.emitDeleteMessage(result.message as IMessage);
-              return res.status(200).json({ message: result });
+             req.app.locals.socketController.emitDeleteMessage(result.message as IMessage);
+             return res.status(200).json({ message: result });
          }
    } catch (error) {
          return res.status(500).json({ error: 'Internal server error' });
